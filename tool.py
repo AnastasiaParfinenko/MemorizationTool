@@ -1,7 +1,7 @@
 import sys
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, declarative_base
+from textwrap import dedent
 
 Base = declarative_base()
 
@@ -78,13 +78,39 @@ def work_practice():
     for card in flashcards:
         print()
         print(f'Question: {card.question}')
-        y_or_n = input('Please press "y" to see the answer or press "n" to skip:\n')
+        y_or_n = input(dedent('''\
+            press "y" to see the answer:
+            press "n" to skip:
+            press "u" to update:\n'''))
         if y_or_n == 'y':
             print(f'Answer: {card.answer}')
         elif y_or_n == 'n':
             continue
+        elif y_or_n == 'u':
+            update_flashcards(card)
 
     work_main_menu()
+
+
+def update_flashcards(card):
+    query = session.query(Flashcard).filter(Flashcard.question == card.question)
+
+    d_or_e = input(dedent('''\
+        press "d" to delete the flashcard:
+        press "e" to edit the flashcard:\n'''))
+    if d_or_e == 'd':
+        query.delete()
+    elif d_or_e == 'e':
+        print(f'current question: {card.question}')
+        new_q = input('please write a new question:\n') or card.question
+        print(f'current answer: {card.answer}')
+        new_a = input('please write a new answer:\n') or card.answer
+        query.update({
+            "question": new_q,
+            "answer": new_a
+        })
+
+    session.commit()
 
 
 def main():
